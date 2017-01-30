@@ -13,8 +13,8 @@ class Agent(object):
         self.verbose = verbose
         self.loss_val = loss_val
         self.learning = learning
-        self.epsilon = 0.0
-        self.alpha = 1.1
+        self.epsilon = 0.1
+        self.alpha = 1
         self.prev_state = None
         self.prev_score = 0
         self.count = 0

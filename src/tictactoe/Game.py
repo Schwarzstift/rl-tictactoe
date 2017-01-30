@@ -67,24 +67,27 @@ def draw_results(win_counter):
 def draw_average_results(player_o_wins, player_x_wins, draw):
     results = [player_o_wins, player_x_wins, draw]
     labels = ["Player O Win", "Player X Win", "Draw"]
-    plottingData = pd.DataFrame()
+    plotting_data = pd.DataFrame()
     for result,name in zip(results, labels):
         df = pd.DataFrame(result).transpose()
         df = df.mean(axis=1)
-        plottingData[name] = df
+        plotting_data[name] = df
 
-    plottingData.plot()
+    ax = plotting_data.plot()
+    ax.set_title("Average of "+str(len(draw))+" repetitions over "+str(len(draw[0])-1)+ " games")
+    ax.set_xlabel("Games played")
+    ax.set_ylabel("Counter of occurrence")
 
 
 def average_training_agents(agent1, agent2):
-    average_size = 100
+    average_size = 1000
 
     player_o_win = []
     player_x_win = []
     draw = []
 
     for i in range(average_size):
-        if i % (average_size/25) == 0:
+        if i % (average_size*0.2) == 0:
             print "Process: " + str(round((i/float(average_size))*100)) + "%"
 
         copy_of_agent1 = copy.deepcopy(agent1)
@@ -99,7 +102,7 @@ def average_training_agents(agent1, agent2):
 
 def train_agents_against_each_other(agent1, agent2, draw_temp_results):
     win_counter = {PLAYER_X:[0], PLAYER_O:[0], DRAW:[0]}
-    games = 3000
+    games = 20000
     for i in range(games):
 
         winner = play(agent1, agent2)
@@ -128,7 +131,6 @@ def game_loop_computer_vs_human():
 if __name__ == "__main__":
     p1 = Agent(PLAYER_X, loss_val=-1)
     p2 = Agent(PLAYER_O, loss_val=-1)
-    p2.epsilon=0.1
     series_each_other = ['P1-Win', 'P2-Win', 'Draw']
     average_training_agents(p1, p2)
     #train_agents_against_each_other(p1,p2,True)
