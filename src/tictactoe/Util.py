@@ -8,7 +8,6 @@ PLAYER_O = 2
 DRAW = 3
 
 
-
 def empty_state():
     return [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]]
 
@@ -30,3 +29,12 @@ def game_over(state):
             if state[i][j] == EMPTY:
                 return EMPTY
     return DRAW
+
+
+def print_board(state):
+    cells = []
+    # noinspection PyShadowingNames
+    for i in range(3):
+        for j in range(3):
+            cells.append(NAMES[state[i][j]].center(6))
+    print BOARD_FORMAT.format(*cells)

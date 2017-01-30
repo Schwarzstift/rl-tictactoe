@@ -1,7 +1,7 @@
 import random
 from copy import deepcopy
 
-from tictactoe.Global import *
+from tictactoe.Util import *
 
 
 class Agent(object):
@@ -11,8 +11,8 @@ class Agent(object):
         self.verbose = verbose
         self.loss_val = loss_val
         self.learning = learning
-        self.epsilon = 0.1
-        self.alpha = 0.99
+        self.epsilon = 0.0
+        self.alpha = 0.2
         self.prev_state = None
         self.prev_score = 0
         self.count = 0
@@ -46,24 +46,24 @@ class Agent(object):
                     available.append((i, j))
         return random.choice(available)
 
-    def greedy(self, state):
+    def greedy(self, current_field_state):
         max_val = -50000
         max_move = None
         if self.verbose:
             cells = []
         for i in range(3):
             for j in range(3):
-                if state[i][j] == EMPTY:
-                    state[i][j] = self.player
-                    val = self.lookup(state)
-                    state[i][j] = EMPTY
+                if current_field_state[i][j] == EMPTY:
+                    current_field_state[i][j] = self.player
+                    val = self.lookup(current_field_state)
+                    current_field_state[i][j] = EMPTY
                     if val > max_val:
                         max_val = val
                         max_move = (i, j)
                     if self.verbose:
                         cells.append('{0:.3f}'.format(val).center(6))
                 elif self.verbose:
-                    cells.append(NAMES[state[i][j]].center(6))
+                    cells.append(NAMES[current_field_state[i][j]].center(6))
         if self.verbose:
             print BOARD_FORMAT.format(*cells)
         self.backup(max_val)

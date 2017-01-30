@@ -26,35 +26,8 @@ import csv
 import matplotlib.pyplot as plt
 
 from tictactoe.Agent import Agent
-from tictactoe.Global import *
-
-
-def print_board(state):
-    cells = []
-    # noinspection PyShadowingNames
-    for i in range(3):
-        for j in range(3):
-            cells.append(NAMES[state[i][j]].center(6))
-    print BOARD_FORMAT.format(*cells)
-
-
-
-class Human(object):
-    def __init__(self, player):
-        self.player = player
-
-    @staticmethod
-    def action(state):
-        print_board(state)
-        action = raw_input('Your move? ')
-        return int(action.split(',')[0]), int(action.split(',')[1])
-
-    @staticmethod
-    def episode_over(winner):
-        if winner == DRAW:
-            print 'Game over! It was a draw.'
-        else:
-            print 'Game over! Winner: Player {0}'.format(winner)
+from tictactoe.Human import Human
+from tictactoe.Util import *
 
 
 def play(agent1, agent2):
@@ -71,79 +44,34 @@ def play(agent1, agent2):
     return winner
 
 
-def measure_performance_vs_random(agent1, agent2):
-    epsilon1 = agent1.epsilon
-    epsilon2 = agent2.epsilon
-    agent1.epsilon = 0
-    agent2.epsilon = 0
-    agent1.learning = False
-    agent2.learning = False
-    r1 = Agent(1)
-    r2 = Agent(2)
-    r1.epsilon = 1
-    r2.epsilon = 1
-    probs = [0, 0, 0, 0, 0, 0]
-    games = 100
+def draw_results(win_counter):
+    fig = plt.figure()
+    fig.subplots_adjust(bottom= 0.15)
+    ax = fig.add_subplot(111)
+    for i in range(0,len(win_counter)):
+        ax.plot(range(len(win_counter[i])), win_counter[i], label=series_each_other[i])
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+              fancybox=True, shadow=True, ncol=5)
+    fig.show()
+
+
+def train_agents_against_each_other():
+    win_counter = [[0], [0], [0]]
+    games=20000
     for i in range(games):
-        winner = play(agent1, r2)
-        if winner == PLAYER_X:
-            probs[0] += 1.0 / games
-        elif winner == PLAYER_O:
-            probs[1] += 1.0 / games
-        else:
-            probs[2] += 1.0 / games
-    for i in range(games):
-        winner = play(r1, agent2)
-        if winner == PLAYER_O:
-            probs[3] += 1.0 / games
-        elif winner == PLAYER_X:
-            probs[4] += 1.0 / games
-        else:
-            probs[5] += 1.0 / games
-    agent1.epsilon = epsilon1
-    agent2.epsilon = epsilon2
-    agent1.learning = True
-    agent2.learning = True
-    return probs
+        if i % 100 == 0:
+            print "Game: " + str(i) + " of: " + str(games)
 
+        winner = play(p1, p2)
+        p1.episode_over(winner)
+        p2.episode_over(winner)
 
-def measure_performance_vs_each_other(agent1, agent2):
-    # epsilon1 = agent1.epsilon
-    # epsilon2 = agent2.epsilon
-    # agent1.epsilon = 0
-    # agent2.epsilon = 0
-    # agent1.learning = False
-    # agent2.learning = False
-    probs = [0, 0, 0]
-    games = 100
-    for i in range(games):
-        winner = play(agent1, agent2)
-        if winner == PLAYER_X:
-            probs[0] += 1.0 / games
-        elif winner == PLAYER_O:
-            probs[1] += 1.0 / games
-        else:
-            probs[2] += 1.0 / games
-    # agent1.epsilon = epsilon1
-    # agent2.epsilon = epsilon2
-    # agent1.learning = True
-    # agent2.learning = True
-    return probs
-
-
-def draw_result_of_training(perf):
-    colors = ['r', 'b', 'g', 'c', 'm', 'b']
-    series = ['P1-Win', 'P1-Lose', 'P1-Draw', 'P2-Win', 'P2-Lose', 'P2-Draw']
-    for i in range(1, len(perf)):
-        plt.plot(perf[0], perf[i], label=series[i - 1], color=colors[i - 1])
-    plt.xlabel('Episodes')
-    plt.ylabel('Probability')
-    plt.title('RL Agent Performance vs. Random Agent\n({0} loss value, self-play)'.format(p1.loss_val))
-    # plt.title('P1 Loss={0} vs. P2 Loss={1}'.format(p1.lossval, p2.lossval))
-    plt.legend()
-    # plt.show()
-    # plt.savefig('p1loss{0}vsp2loss{1}.png'.format(p1.lossval, p2.lossval))
-    plt.savefig('../../results/selfplay_random_{0}loss.png'.format(p1.loss_val))
+        for i in range(3):
+            value = 0
+            if winner == i+1:
+                value = 1
+            win_counter[i].append(win_counter[i][-1]+value)
+    draw_results(win_counter)
 
 
 def game_loop_computer_vs_human():
@@ -154,36 +82,10 @@ def game_loop_computer_vs_human():
         p1.episode_over(winner)
         p2.episode_over(winner)
 
-
-def train_agents():
-    f = open('../../results/results.csv', 'wb')
-    writer = csv.writer(f)
-    writer.writerow(series)
-    perf = [[] for _ in range(len(series) + 1)]
-    for i in range(5000):
-        if i % 10 == 0:
-            print 'Game: {0}'.format(i)
-            probs = measure_performance_vs_random(p1, p2)
-            writer.writerow(probs)
-            f.flush()
-            perf[0].append(i)
-            for idx, x in enumerate(probs):
-                perf[idx + 1].append(x)
-        winner = play(p1, p2)
-        p1.episode_over(winner)
-        p2.episode_over(winner)
-    f.close()
-    return perf
-
-
 if __name__ == "__main__":
-    p1 = Agent(1, loss_val=-1)
-    p2 = Agent(2, loss_val=-1)
-    r1 = Agent(1, learning=False)
-    r2 = Agent(2, learning=False)
-    r1.epsilon = 1
-    r2.epsilon = 1
-    series = ['P1-Win', 'P1-Lose', 'P1-Draw', 'P2-Win', 'P2-Lose', 'P2-Draw']
-    perf = train_agents()
-    draw_result_of_training(perf)
-    game_loop_computer_vs_human()
+    p1 = Agent(PLAYER_O, loss_val=-1)
+    p2 = Agent(PLAYER_X, loss_val=-1)
+    series_each_other = ['P1-Win', 'P2-Win', 'Draw']
+    train_agents_against_each_other()
+    plt.show()
+    # game_loop_computer_vs_human()
