@@ -23,6 +23,8 @@ Code released under the MIT license.
 """
 
 import csv
+
+import copy
 import matplotlib.pyplot as plt
 
 from tictactoe.Agent import Agent
@@ -54,26 +56,47 @@ def draw_results(win_counter):
         ax.plot(range(len(win_counter[i])), win_counter[i], label=series_each_other[i])
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
               fancybox=True, shadow=True, ncol=5)
+    ax.set_ylabel("Occurred event counter")
+    ax.set_xlabel("Total games played")
+    ax.set_title("TicTacToe - AI vs. AI")
+
     fig.show()
 
 
-def train_agents_against_each_other():
-    win_counter = [[0], [0], [0]]
-    games=20000
+def average_training_agents(agent1, agent2):
+    average_size = 1000
+    player_o_win = []
+    player_x_win = []
+    draw = []
+    for i in range(average_size):
+        copy_of_agent1 = copy.deepcopy(agent1)
+        copy_of_agent2 = copy.deepcopy(agent2)
+        result = train_agents_against_each_other(copy_of_agent1, copy_of_agent2, False)
+        player_o_win.append(result[PLAYER_O])
+        player_x_win.append(result[PLAYER_X])
+        draw.append(result[DRAW])
+
+
+def train_agents_against_each_other(agent1, agent2, draw_temp_results):
+    win_counter = {PLAYER_X:[0], PLAYER_O:[0], DRAW:[0]}
+    games = 3000
     for i in range(games):
-        if i % 100 == 0:
-            print "Game: " + str(i) + " of: " + str(games)
+        if i % (games/25) == 0:
+            print "Process: " + str(round((i/float(games))*100)) + "%"
 
-        winner = play(p1, p2)
-        p1.episode_over(winner)
-        p2.episode_over(winner)
+        winner = play(agent1, agent2)
+        agent1.episode_over(winner)
+        agent2.episode_over(winner)
 
-        for i in range(3):
+        for state in [PLAYER_X, PLAYER_O, DRAW]:
             value = 0
-            if winner == i+1:
+            if winner == state:
                 value = 1
-            win_counter[i].append(win_counter[i][-1]+value)
-    draw_results(win_counter)
+            win_counter[state].append(win_counter[state][-1]+value)
+
+    if draw_temp_results:
+        draw_results(win_counter)
+    return win_counter
 
 
 def game_loop_computer_vs_human():

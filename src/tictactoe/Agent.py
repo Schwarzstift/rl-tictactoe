@@ -1,6 +1,8 @@
 import random
 from copy import deepcopy
 
+from sys import maxint
+
 from tictactoe.Util import *
 
 
@@ -12,7 +14,7 @@ class Agent(object):
         self.loss_val = loss_val
         self.learning = learning
         self.epsilon = 0.0
-        self.alpha = 0.2
+        self.alpha = 1.1
         self.prev_state = None
         self.prev_score = 0
         self.count = 0
@@ -46,7 +48,7 @@ class Agent(object):
         return random.choice(available)
 
     def greedy(self, current_field_state):
-        max_val = -50000
+        max_val = -maxint
         max_move = None
         if self.verbose:
             cells = []
