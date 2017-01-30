@@ -132,6 +132,8 @@ def measure_performance_vs_each_other(agent1, agent2):
 
 
 def draw_result_of_training(perf):
+    colors = ['r', 'b', 'g', 'c', 'm', 'b']
+    series = ['P1-Win', 'P1-Lose', 'P1-Draw', 'P2-Win', 'P2-Lose', 'P2-Draw']
     for i in range(1, len(perf)):
         plt.plot(perf[0], perf[i], label=series[i - 1], color=colors[i - 1])
     plt.xlabel('Episodes')
@@ -141,7 +143,7 @@ def draw_result_of_training(perf):
     plt.legend()
     # plt.show()
     # plt.savefig('p1loss{0}vsp2loss{1}.png'.format(p1.lossval, p2.lossval))
-    plt.savefig('selfplay_random_{0}loss.png'.format(p1.loss_val))
+    plt.savefig('../../results/selfplay_random_{0}loss.png'.format(p1.loss_val))
 
 
 def game_loop_computer_vs_human():
@@ -154,7 +156,7 @@ def game_loop_computer_vs_human():
 
 
 def train_agents():
-    f = open('results.csv', 'wb')
+    f = open('../../results/results.csv', 'wb')
     writer = csv.writer(f)
     writer.writerow(series)
     perf = [[] for _ in range(len(series) + 1)]
@@ -182,9 +184,6 @@ if __name__ == "__main__":
     r1.epsilon = 1
     r2.epsilon = 1
     series = ['P1-Win', 'P1-Lose', 'P1-Draw', 'P2-Win', 'P2-Lose', 'P2-Draw']
-    # series = ['P1-Win', 'P2-Win', 'Draw']
-    colors = ['r', 'b', 'g', 'c', 'm', 'b']
-    markers = ['+', '.', 'o', '*', '^', 's']
     perf = train_agents()
     draw_result_of_training(perf)
     game_loop_computer_vs_human()

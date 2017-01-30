@@ -26,7 +26,7 @@ class Agent(object):
     def action(self, current_field_state):
         r = random.random()
         if r < self.epsilon:
-            move = self.random(current_field_state)
+            move = self.choose_a_random_move(current_field_state)
             self.log('>>>>>>> Exploratory action: ' + str(move))
         else:
             move = self.greedy(current_field_state)
@@ -38,7 +38,7 @@ class Agent(object):
         return move
 
     @staticmethod
-    def random(state):
+    def choose_a_random_move(state):
         available = []
         for i in range(3):
             for j in range(3):
