@@ -32,12 +32,14 @@ from tictactoe.Util import *
 
 def play(agent1, agent2):
     current_field_state = empty_state()
+    current_player = agent1.player
     for i in range(9):
-        if i % 2 == 0:
+        if current_player == agent1.player:
             move = agent1.action(current_field_state)
+            current_player = agent2.player
         else:
             move = agent2.action(current_field_state)
-        current_field_state[move[0]][move[1]] = (i % 2) + 1
+            current_player = agent1.player
         winner = game_over(current_field_state)
         if winner != EMPTY:
             return winner
@@ -83,8 +85,8 @@ def game_loop_computer_vs_human():
         p2.episode_over(winner)
 
 if __name__ == "__main__":
-    p1 = Agent(PLAYER_O, loss_val=-1)
-    p2 = Agent(PLAYER_X, loss_val=-1)
+    p1 = Agent(PLAYER_X, loss_val=-1)
+    p2 = Agent(PLAYER_O, loss_val=-1)
     series_each_other = ['P1-Win', 'P2-Win', 'Draw']
     train_agents_against_each_other()
     plt.show()

@@ -34,7 +34,6 @@ class Agent(object):
         current_field_state[move[0]][move[1]] = self.player
         self.prev_state = self.state_tuple(current_field_state)
         self.prev_score = self.lookup(current_field_state)
-        current_field_state[move[0]][move[1]] = EMPTY
         return move
 
     @staticmethod
