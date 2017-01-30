@@ -70,53 +70,19 @@ def game_over(state):
     return DRAW
 
 
-def last_to_act(state):
-    countx = 0
-    counto = 0
-    # noinspection PyShadowingNames
-    for i in range(3):
-        for j in range(3):
-            if state[i][j] == PLAYER_X:
-                countx += 1
-            elif state[i][j] == PLAYER_O:
-                counto += 1
-    if countx == counto:
-        return PLAYER_O
-    if countx == (counto + 1):
-        return PLAYER_X
-    return -1
-
-
-# noinspection PyShadowingNames
-def enum_states(state, idx, agent):
-    if idx > 8:
-        player = last_to_act(state)
-        if player == agent.player:
-            agent.add(state)
-    else:
-        winner = game_over(state)
-        if winner != EMPTY:
-            return
-        i = idx / 3
-        j = idx % 3
-        for val in range(3):
-            state[i][j] = val
-            enum_states(state, idx + 1, agent)
-
-
 class Agent(object):
-    def __init__(self, player, verbose=False, lossval=0, learning=True):
+    def __init__(self, player, verbose=False, loss_val=0, learning=True):
         self.values = {}
         self.player = player
         self.verbose = verbose
-        self.loss_val = lossval
+        self.loss_val = loss_val
         self.learning = learning
         self.epsilon = 0.1
         self.alpha = 0.99
         self.prev_state = None
         self.prev_score = 0
         self.count = 0
-        enum_states(empty_state(), 0, self)
+        self.add(empty_state())
 
     def episode_over(self, winner):
         self.backup(self.winner_val(winner))
@@ -311,8 +277,8 @@ def measure_performance_vs_each_other(agent1, agent2):
 
 
 if __name__ == "__main__":
-    p1 = Agent(1, lossval=-1)
-    p2 = Agent(2, lossval=-1)
+    p1 = Agent(1, loss_val=-1)
+    p2 = Agent(2, loss_val=-1)
     r1 = Agent(1, learning=False)
     r2 = Agent(2, learning=False)
     r1.epsilon = 1
@@ -325,7 +291,7 @@ if __name__ == "__main__":
     writer = csv.writer(f)
     writer.writerow(series)
     perf = [[] for _ in range(len(series) + 1)]
-    for i in range(10000):
+    for i in range(5000):
         if i % 10 == 0:
             print 'Game: {0}'.format(i)
             probs = measure_performance_vs_random(p1, p2)
@@ -336,7 +302,6 @@ if __name__ == "__main__":
                 perf[idx + 1].append(x)
         winner = play(p1, p2)
         p1.episode_over(winner)
-        # winner = play(r1,p2)
         p2.episode_over(winner)
     f.close()
     for i in range(1, len(perf)):
