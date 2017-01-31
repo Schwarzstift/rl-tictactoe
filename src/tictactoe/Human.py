@@ -18,10 +18,11 @@ class Human(object):
             else:
                 print ("Illegal move! try again")
 
-    @staticmethod
-    def episode_over(winner):
+    def episode_over(self,winner):
         if winner == DRAW:
             print 'Game over! It was a draw.'
+        elif winner == self.player:
+            print 'Game over! YOU WIN!'
         else:
-            print 'Game over! Winner: Player {0}'.format(winner)
+            print 'Game over! YOU LOST!'
 

@@ -110,14 +110,14 @@ def average_training_agents(training_pairs, num_games, agent1, agent2):
     for process in sub_process_list:
         process.join()
 
-    # train_agents_against_each_other(num_games,agent1,agent2, queue, False)
 
     draw_average_results(player_o_win, player_x_win, draw)
 
 
-def game_loop_computer_vs_human(agent2):
+def game_loop_computer_vs_human(agent1,agent2):
     agent2.epsilon = 0
-
+    p = Trainer(agent1, agent2, 10000, multiprocessing.Queue())
+    p.run()
     while True:
         agent2.verbose = True
         human = Human(PLAYER_X)
@@ -130,6 +130,6 @@ if __name__ == "__main__":
     p1 = Agent(PLAYER_X, loss_val=-1)
     p2 = Agent(PLAYER_O, loss_val=-1)
     series_each_other = ['P1-Win', 'P2-Win', 'Draw']
-    average_training_agents(1000, 20000, p1, p2)
+    average_training_agents(10, 2000, p1, p2)
     plt.show()
-    # game_loop_computer_vs_human(p2)
+    game_loop_computer_vs_human(p1,p2)
