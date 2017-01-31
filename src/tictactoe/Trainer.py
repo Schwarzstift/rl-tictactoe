@@ -13,7 +13,7 @@ class Trainer(threading.Thread):
 
     def __init__(self, player1, player2):
         threading.Thread.__init__(self)
-        Trainer.num_trainer -=1
+        Trainer.num_trainer -= 1
         self.player1 = player1
         self.player2 = player2
         pass

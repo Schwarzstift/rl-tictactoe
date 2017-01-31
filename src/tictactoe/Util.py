@@ -1,4 +1,4 @@
-
+# noinspection PyPep8
 BOARD_FORMAT = "----------------------------\n| {0} | {1} | {2} |\n|--------------------------|\n| {3} | {4} | {5} |\n|--------------------------|\n| {6} | {7} | {8} |\n----------------------------"
 NAMES = [' ', 'X', 'O']
 
@@ -43,14 +43,15 @@ def print_board(state):
 def play(agent1, agent2):
     current_field_state = empty_state()
     current_player = agent1.player
+    game_state = EMPTY
     for i in range(9):
         if current_player == agent1.player:
-            move = agent1.action(current_field_state)
+            agent1.action(current_field_state)
             current_player = agent2.player
         else:
-            move = agent2.action(current_field_state)
+            agent2.action(current_field_state)
             current_player = agent1.player
-        winner = game_over(current_field_state)
-        if winner != EMPTY:
-            return winner
-    return winner
+        game_state = game_over(current_field_state)
+        if game_state != EMPTY:
+            return game_state
+    return game_state

@@ -96,8 +96,8 @@ class Agent(object):
             return self.loss_val
 
     def print_values(self):
-        vals = deepcopy(self.values)
-        for key in vals:
+        values = deepcopy(self.values)
+        for key in values:
             state = [list(key[0]), list(key[1]), list(key[2])]
             cells = []
             for i in range(3):
