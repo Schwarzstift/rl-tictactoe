@@ -30,23 +30,8 @@ import pandas as pd
 
 from tictactoe.Agent import Agent
 from tictactoe.Human import Human
+from tictactoe.Trainer import Trainer
 from tictactoe.Util import *
-
-
-def play(agent1, agent2):
-    current_field_state = empty_state()
-    current_player = agent1.player
-    for i in range(9):
-        if current_player == agent1.player:
-            move = agent1.action(current_field_state)
-            current_player = agent2.player
-        else:
-            move = agent2.action(current_field_state)
-            current_player = agent1.player
-        winner = game_over(current_field_state)
-        if winner != EMPTY:
-            return winner
-    return winner
 
 
 def draw_results(win_counter):
@@ -80,44 +65,22 @@ def draw_average_results(player_o_wins, player_x_wins, draw):
 
 
 def average_training_agents(agent1, agent2):
-    average_size = 1000
+    average_size = 100
 
-    player_o_win = []
-    player_x_win = []
-    draw = []
+    trainer = []
 
     for i in range(average_size):
-        if i % (average_size*0.2) == 0:
-            print "Process: " + str(round((i/float(average_size))*100)) + "%"
-
         copy_of_agent1 = copy.deepcopy(agent1)
         copy_of_agent2 = copy.deepcopy(agent2)
-        result = train_agents_against_each_other(copy_of_agent1, copy_of_agent2, False)
+        t = Trainer(copy_of_agent1, copy_of_agent2)
+        t.start()
+        trainer.append(t)
 
-        player_o_win.append(result[PLAYER_O])
-        player_x_win.append(result[PLAYER_X])
-        draw.append(result[DRAW])
-    draw_average_results(player_o_win, player_x_win, draw)
+    for i,t in zip(range(len(trainer)),trainer):
+        t.join()
+        print "Process: " + str(round(((i+1)/float(average_size))*100)) + "%"
 
-
-def train_agents_against_each_other(agent1, agent2, draw_temp_results):
-    win_counter = {PLAYER_X:[0], PLAYER_O:[0], DRAW:[0]}
-    games = 20000
-    for i in range(games):
-
-        winner = play(agent1, agent2)
-        agent1.episode_over(winner)
-        agent2.episode_over(winner)
-
-        for state in [PLAYER_X, PLAYER_O, DRAW]:
-            value = 0
-            if winner == state:
-                value = 1
-            win_counter[state].append(win_counter[state][-1]+value)
-
-    if draw_temp_results:
-        draw_results(win_counter)
-    return win_counter
+    draw_average_results(Trainer.player_o_win, Trainer.player_x_win, Trainer.draw)
 
 
 def game_loop_computer_vs_human():

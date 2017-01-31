@@ -38,3 +38,19 @@ def print_board(state):
         for j in range(3):
             cells.append(NAMES[state[i][j]].center(6))
     print BOARD_FORMAT.format(*cells)
+
+
+def play(agent1, agent2):
+    current_field_state = empty_state()
+    current_player = agent1.player
+    for i in range(9):
+        if current_player == agent1.player:
+            move = agent1.action(current_field_state)
+            current_player = agent2.player
+        else:
+            move = agent2.action(current_field_state)
+            current_player = agent1.player
+        winner = game_over(current_field_state)
+        if winner != EMPTY:
+            return winner
+    return winner
