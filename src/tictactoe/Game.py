@@ -25,8 +25,6 @@ Code released under the MIT license.
 import copy
 import multiprocessing
 import pandas as pd
-import threading
-import time
 
 import matplotlib.pyplot as plt
 
@@ -66,46 +64,72 @@ def draw_average_results(player_o_wins, player_x_wins, draw):
     ax.set_ylabel("Counter of occurrence")
 
 
-def average_training_agents(trainings, agent1, agent2):
-    def start_trainer():
+def train_agents_against_each_other(num_games, player1, player2, queue, verbose=True):
+    win_counter = {PLAYER_X: [0], PLAYER_O: [0], DRAW: [0]}
+    for i in range(num_games):
+        winner = play(player1, player2)
+        player1.episode_over(winner)
+        player2.episode_over(winner)
+
+        for state in [PLAYER_X, PLAYER_O, DRAW]:
+            value = 0
+            if winner == state:
+                value = 1
+            win_counter[state].append(win_counter[state][-1] + value)
+
+        if verbose:
+            if i % 100 == 0:
+                print("Process: "+ str(round(i/float(num_games)*100))) + "%"
+    queue.put(win_counter)
+
+
+def average_training_agents(training_pairs, num_games, agent1, agent2):
+    queue = multiprocessing.Queue()
+    player_o_win = []
+    player_x_win = []
+    draw = []
+    counter = 0
+    sub_process_list = []
+
+    while counter < training_pairs:
         copy_of_agent1 = copy.deepcopy(agent1)
         copy_of_agent2 = copy.deepcopy(agent2)
-        t = Trainer(copy_of_agent1, copy_of_agent2)
-        t.start()
-        return t
-
-    Trainer.num_trainer = trainings
-    trainers = []
-    while Trainer.num_trainer > 0:
-        if multiprocessing.cpu_count() > threading.active_count():
-            trainers.append(start_trainer())
-            print "Process: " + str(round(((trainings - Trainer.num_trainer) / float(trainings)) * 100)) + "%"
+        if len(multiprocessing.active_children()) < multiprocessing.cpu_count() and len(sub_process_list)<training_pairs:
+            p = Trainer(copy_of_agent1, copy_of_agent2, num_games, queue)
+            #p = Process(target=train_agents_against_each_other,args=(num_games, copy_of_agent1, copy_of_agent2, queue, False))
+            p.start()
+            sub_process_list.append(p)
         else:
-            time.sleep(2)
+            results = queue.get(block=True,timeout=None)
+            counter += 1
+            print("Total process: " + str(round(counter / float(training_pairs) * 100))) + "%"
+            player_x_win.append(results[PLAYER_X])
+            player_o_win.append(results[PLAYER_O])
+            draw.append(results[DRAW])
 
-    for trainer in trainers:
-        trainer.join()
+    for process in sub_process_list:
+        process.join()
 
-    draw_average_results(Trainer.player_o_win, Trainer.player_x_win, Trainer.draw)
+    # train_agents_against_each_other(num_games,agent1,agent2, queue, False)
+
+    draw_average_results(player_o_win, player_x_win, draw)
 
 
-def game_loop_computer_vs_human(agent1, agent2):
-    t = Trainer(agent1, agent2)
-    t.start()
-    t.join()
+def game_loop_computer_vs_human(agent2):
+    agent2.epsilon = 0
 
     while True:
         agent2.verbose = True
         human = Human(PLAYER_X)
         winner = play(human, agent2)
         human.episode_over(winner)
-        p2.episode_over(winner)
+        agent2.episode_over(winner)
 
 
 if __name__ == "__main__":
     p1 = Agent(PLAYER_X, loss_val=-1)
     p2 = Agent(PLAYER_O, loss_val=-1)
     series_each_other = ['P1-Win', 'P2-Win', 'Draw']
-    # average_training_agents(20, p1, p2)
-    # plt.show()
-    game_loop_computer_vs_human(p1, p2)
+    average_training_agents(1000, 20000, p1, p2)
+    plt.show()
+    # game_loop_computer_vs_human(p2)
