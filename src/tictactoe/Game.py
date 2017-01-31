@@ -25,13 +25,18 @@ Code released under the MIT license.
 import csv
 
 import copy
+import threading
+
 import matplotlib.pyplot as plt
 import pandas as pd
+
+import time
 
 from tictactoe.Agent import Agent
 from tictactoe.Human import Human
 from tictactoe.Trainer import Trainer
 from tictactoe.Util import *
+import multiprocessing
 
 
 def draw_results(win_counter):
@@ -64,30 +69,38 @@ def draw_average_results(player_o_wins, player_x_wins, draw):
     ax.set_ylabel("Counter of occurrence")
 
 
-def average_training_agents(agent1, agent2):
-    average_size = 100
-
-    trainer = []
-
-    for i in range(average_size):
+def average_training_agents(trainings, agent1, agent2):
+    def start_trainer():
         copy_of_agent1 = copy.deepcopy(agent1)
         copy_of_agent2 = copy.deepcopy(agent2)
         t = Trainer(copy_of_agent1, copy_of_agent2)
         t.start()
-        trainer.append(t)
+        return t
 
-    for i,t in zip(range(len(trainer)),trainer):
-        t.join()
-        print "Process: " + str(round(((i+1)/float(average_size))*100)) + "%"
+    Trainer.num_trainer = trainings
+    trainers = []
+    while Trainer.num_trainer > 0:
+        if multiprocessing.cpu_count()>threading.active_count():
+            trainers.append(start_trainer())
+            print "Process: " + str(round(((trainings-Trainer.num_trainer)/float(trainings))*100)) + "%"
+        else:
+            time.sleep(2)
+
+    for trainer in trainers:
+        trainer.join()
 
     draw_average_results(Trainer.player_o_win, Trainer.player_x_win, Trainer.draw)
 
 
-def game_loop_computer_vs_human():
+def game_loop_computer_vs_human(agent1, agent2):
+    t = Trainer(agent1, agent2)
+    t.start()
+    t.join()
+
     while True:
-        p2.verbose = True
-        p1 = Human(1)
-        winner = play(p1, p2)
+        agent2.verbose = True
+        p1 = Human(PLAYER_X)
+        winner = play(p1, agent2)
         p1.episode_over(winner)
         p2.episode_over(winner)
 
@@ -95,7 +108,6 @@ if __name__ == "__main__":
     p1 = Agent(PLAYER_X, loss_val=-1)
     p2 = Agent(PLAYER_O, loss_val=-1)
     series_each_other = ['P1-Win', 'P2-Win', 'Draw']
-    average_training_agents(p1, p2)
-    #train_agents_against_each_other(p1,p2,True)
-    plt.show()
-    # game_loop_computer_vs_human()
+    #average_training_agents(20, p1, p2)
+    #plt.show()
+    game_loop_computer_vs_human(p1,p2)
